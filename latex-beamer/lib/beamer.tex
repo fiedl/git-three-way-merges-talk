@@ -1,0 +1,141 @@
+\usepackage{pgfshade}
+\usepackage{pifont}
+\usepackage{anyfontsize}
+\usepackage{xcolor}
+
+%\usetheme{Warsaw}
+%\usetheme{Frankfurt}
+\usetheme[%
+  sectionpage=progressbar,%
+  subsectionpage=progressbar%
+]{metropolis}
+%\useoutertheme{infolines}
+%\setbeamertemplate{footline}[infolines theme]
+%\setbeamertemplate{footline}[text line]{%
+%\begin{beamercolorbox}{section in head/foot}%
+%\vskip2pt\insertnavigation{\paperwidth}\vskip2pt
+%%\insertshorttitle\hfill\insertshortauthor\hfill\insertpagenumber
+%%\parbox{\linewidth}{\vspace*{-8pt}\insertshorttitle\hfill\insertshortauthor\hfill\insertpagenumber}%
+%\end{beamercolorbox}%
+%}
+
+\definecolor{gray75}{gray}{0.75}
+
+% https://tex.stackexchange.com/a/105616/70789
+\makeatother
+\setbeamertemplate{footline}
+{%
+  \leavevmode%
+  \hbox{\begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.125ex,leftskip=.3cm,rightskip=.3cm]{author in head/foot}%
+  \insertshorttitle%
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.125ex,leftskip=.3cm,rightskip=.3cm plus1fil]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor\hfill\insertpagenumber
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatletter
+
+\setbeamercovered{transparent}
+\usecolortheme{seahorse}
+
+\beamertemplatenavigationsymbolsempty
+
+%\setbeamertemplate{footline}[author, title, frame number]
+
+% https://tex.stackexchange.com/a/42620/70789
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\newcommand\header[1]{{\large\alert{#1}\par}}
+
+\newcommand{\vtiny}{\fontsize{6}{1}\selectfont}
+\usepackage[absolute,overlay]{textpos}
+
+\newcommand{\zitat}[2]{
+  \textit{\frqq#1 \flqq}\\
+  \begin{flushright}
+    -- #2
+  \end{flushright}
+}
+\newcommand{\source}[1]{
+  \begin{textblock*}{\linewidth}(1cm,.92\paperheight)
+    \vtiny Source: #1
+  \end{textblock*}
+}
+\newcommand{\symbole}[1]{
+  \begin{textblock*}{\linewidth}(1cm,.79\paperheight)
+    \parbox{0.75\linewidth}{\vtiny #1}
+  \end{textblock*}
+}
+\newcommand{\name}[1]{
+  \textsc{#1}
+}
+
+\newcommand\follows{\item[$\rightarrow$]}
+
+\setminted[bash]{
+  linenos=false,
+  fontsize=\scriptsize,
+  baselinestretch=1
+}
+
+\newenvironment{smallbash}{\minted[fontsize=\tiny]{bash}}{\endminted}
+
+\newenvironment{sideimage}[1]
+  {
+    \vspace{6mm}
+    \hspace*{-4mm}
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\textwidth]{#1}
+    \endminipage
+    \hspace*{8mm}
+    \minipage{0.5\textwidth}
+  }
+  {\endminipage}
+
+\newcommand\her[1]{\alert{#1}}
+
+% http://ctan.math.illinois.edu/macros/latex/contrib/enumitem/enumitem.pdf
+\usepackage{enumitem}
+\usepackage{xcolor}
+\setlist{parsep=6pt}
+\setitemize{label=\textbullet}
+\setdescription{labelindent=0pt,labelwidth=2.1cm,labelsep*=1em,leftmargin=!, font={\mdseries\sffamily\color{blue}}}
+
+%% Slide number in footer
+%\newcommand*\oldmacro{}%
+%\let\oldmacro\insertshorttitle%
+%\renewcommand*\insertshorttitle{%
+%   \oldmacro\hfill%
+%   %\insertframenumber\,/\,\inserttotalframenumber}
+%   \insertframenumber}
+
+% % Logo in header
+% % https://tex.stackexchange.com/a/347635/70789
+% \makeatletter
+% \setbeamertemplate{headline}
+% {%
+%   \leavevmode%
+%   \@tempdimb=2.4375ex%
+%   \ifnum\beamer@subsectionmax<\beamer@sectionmax%
+%     \multiply\@tempdimb by\beamer@sectionmax%
+%   \else%
+%     \multiply\@tempdimb by\beamer@subsectionmax%
+%   \fi%
+%   \ifdim\@tempdimb>0pt%
+%     \advance\@tempdimb by 1.825ex%
+%     \begin{beamercolorbox}[wd=.5\paperwidth,ht=\@tempdimb]{section in head/foot}%
+%       \vbox to\@tempdimb{\vfil\insertsectionnavigation{.5\paperwidth}\vfil}%
+%     \end{beamercolorbox}%
+%     \begin{beamercolorbox}[wd=.5\paperwidth,ht=\@tempdimb]{subsection in head/foot}%
+%       \vbox to\@tempdimb{\vfil\insertsubsectionnavigation{.3\paperwidth}\vfil}%
+%       \hfill
+%       \unless\ifplacelogo % If the main logo is not shown, use the header logo
+%         \raisebox{0.18\headheight}{\includegraphics[height=0.7\headheight]{img/icecube-sm}}
+%         \raisebox{0.3\headheight}{\includegraphics[height=0.6\headheight]{img/ecap-sm}}
+%       \fi
+%     \end{beamercolorbox}%
+%   \fi%
+% }
+% \makeatother

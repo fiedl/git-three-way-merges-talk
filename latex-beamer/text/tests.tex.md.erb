@@ -1,0 +1,34 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile]{Tests}
+
+  Run a series of tests for individual steps of the concept:
+
+  \begin{itemize}
+    \item[\done] \href{https://github.com/fiedl/monopole-generator/issues/3}{Test merging a project into combo while preserving both histories}.
+    \item[\done] \href{https://github.com/fiedl/icecube-git-migration/issues/2}{Use svn externals to get github combo code into svn meta projects}.
+    \item[\done] \href{https://github.com/fiedl/icecube-git-migration/issues/2}{Use gitman to get projects into svn meta projects}.
+    \item[\done] \href{https://github.com/fiedl/icecube-combo-install}{Use github actions to run build}
+    \item[\done] \href{https://github.com/fiedl/monopole-generator-install}{Use github actions to run unit tests}
+    \item[\inprogress] \href{https://github.com/fiedl/icecube-combo-install}{Test how to change the origin sources of local repos: `svn external`? `svn relocate`? `git clone`?}
+    \item[\inprogress] Import pre-combo history while preserving the current combo git history
+  \end{itemize}
+
+  \vfill
+  \tiny See also: \url{https://github.com/fiedl/icecube-git-migration/issues/9}
+
+\end{frame}
+
+\begin{frame}[fragile]{Tests}
+
+  After that, test the concept as a whole:
+
+  \begin{itemize}
+    \item[\tobedone] Create a private, but writable proof-of-concept copy of \href{https://github.com/IceCube-SPNO/IceTrayCombo}{IceTrayCombo} and usage and migration info in `README.md`
+    \item[\tobedone] Test local migration of combo with a group of people
+    \item[\tobedone] Test local migration of a meta project with a group of people
+    \item[\tobedone] Test committing to combo with a group of people
+    \item[\tobedone] Test updating a meta project with a group of people
+  \end{itemize}
+
+\end{frame}

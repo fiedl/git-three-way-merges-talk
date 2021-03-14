@@ -1,0 +1,27 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile]{Wishlist Erik Blaufuss and Don La Dieu}
+
+  \begin{itemize}
+    \item Sandboxes: Use private github account; also svn sandboxes will not disappear.
+    \item Also plan for analysis code and papers (slide 7)
+    \item Suggests shadow projects to allow release-based imports into meta projects
+      \begin{itemize}
+        \item We can have svn meta projects without shadow projects using svn externals and github's svn bridge, or by using a manager like gitman
+        \item See also: Discussion: Single combo repo vs. separate project repos
+      \end{itemize}
+    \item Svn is not going away
+      \begin{itemize}
+        \item We can keep our svn repo readonly
+        \item Maybe we can use github's svn bridge
+        \item But we should *not* allow a separate svn repo for write access to save us from the work of sorting and cross-syncing
+      \end{itemize}
+  \end{itemize}
+
+  \vfill
+  \tiny
+  See also: \href{https://docs.google.com/presentation/d/1UQSj5j_flHoEbX9NpAc1hi55sSJGDKBSZNYWwJqL5HA/edit?usp=sharing}{Slides}
+  | \href{https://github.com/fiedl/icecube-git-migration/issues/9}{\#9}
+  | \href{https://github.com/fiedl/icecube-git-migration/issues/7}{\#7}
+
+\end{frame}

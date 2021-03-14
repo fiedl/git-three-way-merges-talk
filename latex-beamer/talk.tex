@@ -1,0 +1,93 @@
+%!TEX TS-program = ./make.zsh
+
+\documentclass{beamer}
+
+% https://gist.github.com/andrejbauer/ac361549ac2186be0cdb
+%\setbeameroption{show notes}
+
+\newlength{\mypaperwidth}\setlength{\mypaperwidth}{200mm}
+%\geometry{paperwidth=\mypaperwidth,paperheight=0.7\mypaperwidth}
+\geometry{paperwidth=\mypaperwidth,paperheight=0.625\mypaperwidth} % 16:10
+%\geometry{paperwidth=\mypaperwidth,paperheight=0.5625\mypaperwidth} % 16:9
+
+\title{Goals and choices regarding the migration to github}
+\subtitle{Software Call 2020-12-01}
+\date{\today \\ \vspace*{2mm}\tiny{Document 2020-Wa6hohfe} \normalsize}
+
+\author[Sebastian Fiedlschuster]{Sebastian Fiedlschuster \\ \small\url{https://github.com/fiedl/icecube-git-migration} \\
+\small\url{sebastian.fiedlschuster@fau.de}}
+\institute{Erlangen Centre for Astroparticle Physics}
+
+\newif\ifplacelogo % create a new conditional
+\placelogotrue % set it to true
+\logo{\ifplacelogo
+  \raisebox{-0.12cm}{\includegraphics[height=0.9cm]{img/DEgov-BMBF-Logo_en}}\hspace{0.3cm}
+  %\raisebox{-0.12cm}{\includegraphics[height=1cm]{img/icecube}}\hspace{0.3cm}
+  \raisebox{-0.12cm}{\includegraphics[height=1cm]{img/icecube-logo-side-text}}\hspace{0.3cm}
+  % \raisebox{-0.1cm}{\includegraphics[height=1cm]{img/DESY_logo_3C_web}}\hspace{0.5cm}
+  \raisebox{-0.1cm}{\includegraphics[height=1cm]{img/ecap}}\hspace{0.3cm}
+  \includegraphics[height=0.75cm]{img/Logo_FAU_DinA4_RGB}
+\fi}
+
+\input{lib/graphics}
+\input{lib/tikz}
+\input{lib/tikz_chord_diagram}
+\input{lib/listings}
+\input{lib/tabular}
+\input{lib/beamer}
+\input{lib/utf8}
+\input{lib/units}
+\input{lib/todo}
+\input{lib/icons}
+\input{lib/hyperlinks}
+
+%\includeonly{}
+
+\begin{document}
+
+% Warning: Do not indent \frame statements.
+% This can lead to "Fatal error occurred, no output PDF file produced!"
+% https://tex.stackexchange.com/a/225582/70789
+
+\input{text/titlepage}
+
+\placelogofalse
+
+\newcommand\done{\checkmark\xspace}
+\newcommand\inprogress{$\Rightarrow$\xspace}
+\newcommand\tobedone{$\square$\xspace}
+
+\newcommand\question[1]{\colorbox{blue!10}{\fbox{\ \ \questionicon \ \ #1}}}
+
+\section{Introduction}
+\input{text/prefix}
+\input{text/motivation}
+
+% \section{Goals and Choices} --> moved into `text/decisions_chord_chart`
+\input{text/decisions_chord_chart}
+
+%\section{Proposal}
+%\subsection{Goal}\input{text/goal}
+%\subsection{Choices}\input{text/choices}
+%\subsection{Pros and Cons}\input{text/pros}
+%\input{text/cons}
+%\subsection{Tests}\input{text/tests}
+%
+%\subsection{Planned steps}
+%\input{text/local_changes}
+%\input{text/steps_to_goal}
+%\input{text/steps_after_goal}
+%
+%\section{Conclusion}
+%\input{text/next_steps}
+\input{text/compromises}
+\input{text/thanks}
+
+\appendix
+\section{Backup slides}
+\input{text/wishlist_nathan}
+\input{text/wishlist_erik}
+\input{text/wishlist_alex}
+\input{text/discussions}
+
+\end{document}

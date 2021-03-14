@@ -1,0 +1,71 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile,allowframebreaks]{Wishlist Nathan Whitehorn}
+
+  \tiny
+  See also: \href{https://drive.google.com/open?id=1RPuHWH_e5Z3oWH2MBRfp7vR9Y3QaHHbv}{Slides}
+  | \href{https://github.com/fiedl/icecube-git-migration/issues/9}{\#9}
+  | \href{https://github.com/fiedl/icecube-git-migration/issues/5}{\#5}
+
+  \normalsize
+  \begin{itemize}
+    \item Commit authors need to be identifiable (have meaningful emails)
+      \begin{itemize}
+        \item We can ensure this in pull requests on github with checks
+        \item We can run the same tests after pushes to master, and then send warnings, or even reset master, and move the changes into a feature branch
+      \end{itemize}
+    \item Answer questions like “what was the repository state on May 25th?”
+      \begin{itemize}
+        \item We can achieve this by logging date and commit id into a log file when executing `env-shell.sh` and icetray.
+      \end{itemize}
+    \item Is access control for sub-folders an issue?
+      \begin{itemize}
+        \item We cannot restrict write access to sub folder when allowing pushes to master (this would require gitlab or github enterprise)
+        \item What would be the benefit of having project-wise access control? Would it be worth the effort?
+        \item We can run access checks after pushes to master, and then send warnings, or even reset master
+      \end{itemize}
+
+    \framebreak
+    \item How do we prevent big-file commits?
+      \begin{itemize}
+        \item We can do checks for pull requests, but not reject pushes to master based on these checks
+        \item We can run the same tests after pushes to master, and then send warnings, or even reset master, and move the changes into a feature branch
+      \end{itemize}
+    \item Git migration of combo drops svn commits before Oct 2018
+      \begin{itemize}
+        \item We can still include other histories (which I am in favor for)
+        \item But from the git graph, it is not obvious then that the code has been merged in 2018
+      \end{itemize}
+    \item Migrate trac issues to github tickets? How could we keep the existing links intact?
+      \begin{itemize}
+        \item We can open github issues in any case
+        \item We can move open trac issues to github if we want, and link the new github issues in the trac thread (but we could also keep track of currently open issues in trac, i.e. live with both systems in parallel for now)
+      \end{itemize}
+
+    \framebreak
+    \item What to do with metaprojects?
+      \begin{itemize}
+        \item They can still live in svn and still use svn externals to include the code of projects living in combo.
+      \end{itemize}
+    \item What to do with sandboxes?
+      \begin{itemize}
+        \item \href{https://github.com/fiedl/icecube-git-migration/issues/7}{Erik suggests} to have them in (possibly private) repos in the users' namespace on github.
+      \end{itemize}
+    \item What to do with papers?
+      \begin{itemize}
+        \item \href{https://github.com/fiedl/icecube-git-migration/issues/7}{Erik suggests} solutions (slide 7)
+      \end{itemize}
+    \item How do we move pre-highlander history to git (important information)?
+      \begin{itemize}
+        \item We can import those histories as well
+        \item But from the git graph it will not be clear when the merges actually have happened
+      \end{itemize}
+  \end{itemize}
+
+  \vfill
+  \tiny
+  See also: \href{https://drive.google.com/open?id=1RPuHWH_e5Z3oWH2MBRfp7vR9Y3QaHHbv}{Slides}
+  | \href{https://github.com/fiedl/icecube-git-migration/issues/9}{\#9}
+  | \href{https://github.com/fiedl/icecube-git-migration/issues/5}{\#5}
+
+\end{frame}

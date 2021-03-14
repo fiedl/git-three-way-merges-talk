@@ -1,0 +1,87 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile,allowframebreaks]{Wishlist Alex Olivas}
+
+  \tiny
+  See also: \href{https://github.com/fiedl/icecube-git-migration/issues/9}{\#9}
+  | \href{https://github.com/fiedl/icecube-git-migration/issues/8}{\#8}
+
+  \normalsize
+  \begin{itemize}
+
+    \item the main sticking point is figuring how to make the git workflow work for us at scale. Or really coming up with some dev model (gitflow variant) that works.
+      \begin{itemize}
+        \item encourage pull requests and code reviews
+        \item but allow commits to master
+        \item add people as collaborators to the combo repo, such that they don't need to fork, but can push feature branches
+      \end{itemize}
+
+    \item to answer questions like “what was the state of combo at 23 October” (because “it has worked then, why doesn’t it now”) is an issue, but a minor one. this is a natural problem with git that we'll just have to get used to.
+      \begin{itemize}
+        \item See discussion: The code was running at 23 October
+        \item We should log the commit id and the current date time to a log file when executing the env-shell.sh and icetray. This way, we could ask people that need support to grep that log file (`grep 2019-10-23 /var/log/icetray.log`) and give us the commit id from the output.
+      \end{itemize}
+
+    \item If we go with vanilla gitflow, where everyone forks and submits a PR, what's the process for accepting PRs that's sustainable? We have 100 projects, almost 40 developers on paper, and up to 100 collaborators committing in a year. Through the upgrade when we're expecting more activity, if we go with the Linux kernel model, then I'm probably the Linus and I approve all PRs going into the master branch. Or do we go with something closer to what we have now where people can commit directly to anything, with little oversight.
+      \begin{itemize}
+        \item a good start would be a couple of automated requirements like checking for over-sized files, an email address being present, and CI tests
+        \item reviews, while not being mandatory, could increase the confidence in a pull request, and increase the speed it is going to be merged
+        \item if we deny pushes to master, the frustration might be higher, because something people were used to do does not work anymore. But the migration should feel good, instead.
+        \item What we can do: Run checks also after pushes to master and have the bot send feedback to people. (Your code has been moved into this feature branch, because ...; check results; this is how you can add more commits, ...) -- People can still work as usual, but get constructive feedback.
+        \item Later on, we could still decide to deny pushes to master.
+      \end{itemize}
+
+    \framebreak
+    \item I'll actively discourage collaborators from clinging to svn.
+      \begin{itemize}
+        \item We can use Github's svn bridge for svn externals of meta projects
+        \item If people really want to still use svn, they'll probably figure out that the svn bridge is there (\url{https://lmgtfy.com/?q=github+svn})
+        \item  But we should tell people about the advantages of using git
+      \end{itemize}
+
+    \item Should we allow people to push to master? Or should we require pull requests? Or some hybrid?
+      \begin{itemize}
+        \item I vote for allowing pushes to master, at least in the beginning, in order to avoid mega frustration
+        \item it's just one setting in the github repo
+      \end{itemize}
+
+    \item Should combo be one repo, or git submodules, or some kind of package manager? The main concern are separate meta projects (e.g. ehe or pnf) that require individual projects from combo.
+      \begin{itemize}
+        \item I vote for one big repo, see discussion \textit{Single combo repo vs. separate project repos}
+        \item We can use github's svn bridge to add combo projects to svn meta projects
+        \item Later, we can use gitman to manage dependencies
+        \item The other meta projects should not live in combo, because more maintenance would then be needed in preparation of a release, because we would add to the dependencies. For a combo release, the whole combo code needs to be in a good state.
+      \end{itemize}
+
+    \item Some projects want to stay with svn
+      \begin{itemize}
+        \item Meta projects and other projects can stay in svn, as long as these projects are not in combo
+        \item For combo projects, it would be easiest to use the svn bridge if this is really necessary
+      \end{itemize}
+
+    \item really we'll want to provide people with the option to compose meta-projects based on combo. This can be done with svn externals. The only downside is that it's not a clone, so people can't push back and not great for development. But we can live with that.
+
+    \item Before we start making decisions though we want to make sure we're choosing the optimal solution and have gamed out as many scenarios as we can.
+      \begin{itemize}
+        \item Please challenge this proposal by posting scenarios, either in the `#git_migration` slack channel, or in this repo's issues.
+      \end{itemize}
+
+    \framebreak
+    \item We've already run into coordination issues with PROPOSAL, where we missed a critical (to some) bug fix. A bug was discovered about a week ago in PROPOSAL. Turns out the fix was committed to PROPOSAL in GitHub last October. We've since had two releases of combo where the bug fix wasn't synced to combo in svn. I would worry about doing something similar with all of combo if we can avoid it.
+      \begin{itemize}
+        \item We move combo to github
+        \item Meta projects use github's svn bridge -- no redundancy there
+        \item People could use github's svn bridge to commit code -- no redundancy there
+        \item For all pull requests, one can see if they are already merged to master
+        \item With a one liner, one can check whether a certain commit is included in a release, branch, etc.
+      \end{itemize}
+
+    \item Add CI pipeline
+      \begin{itemize}
+        \item We can use github actions to test the build, run the tests, and any other arbitrary code
+        \item But considering our build time, github actions will cost money if the repo is private
+        \item This can be circumvented by moving the actions into a public repo, but this will drop some niceties like having tests for pull requests
+      \end{itemize}
+
+  \end{itemize}
+\end{frame}

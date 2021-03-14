@@ -1,0 +1,64 @@
+% Highlighted code listings, https://ctan.org/pkg/minted
+%
+% This requires pygments.
+%
+%     pip install Pygments
+%     cd /Library/TeX/texbin
+%     sudo ln -s `which pygmentize` pygmentize
+%     sudo tlmgr install fvextra
+%     sudo tlmgr update minted
+%
+\usepackage{fancyvrb}
+\usepackage[]{minted}
+
+\definecolor{bggrey}{rgb}{0.95,0.95,0.95}
+
+\setminted{
+  tabsize=2, linenos, breaklines, autogobble, breakautoindent, frame=lines, framesep=2mm
+}
+
+\newenvironment{python}{\minted{python}}{\endminted}
+\newcommand\pythoninput[1]{\inputminted{python}{#1}}
+
+\newenvironment{ccode}{\minted{c}}{\endminted}
+
+\setmintedinline{fontsize=\currentfontsize}
+
+\setminted[bash]{
+  linenos=false,
+  fontsize=\normalsize,
+  frame=none,
+  bgcolor=bggrey
+}
+
+\setminted[ruby]{
+  linenos=false,
+  frame=none,
+  breaklines,
+  breakafter=.(
+}
+
+\setminted[cypher]{
+  linenos=false,
+  frame=none,
+  breaklines,
+  breakafter=\>
+}
+
+\setminted[cpp]{
+  linenos=false,
+  frame=none,
+  breaklines,
+  bgcolor=bggrey,
+  fontsize=\footnotesize
+}
+
+\newenvironment{bash}{\minted{bash}}{\endminted}
+\newenvironment{cpp}{\minted{cpp}}{\endminted}
+
+\newcommand\inlineruby[1]{\mintinline[breaklines, breakafter=.]{ruby}{#1}}
+
+\newcommand\inlinecode[1]{\mintinline[breaklines]{bash}{#1}}
+
+\newenvironment{ruby}{\minted{ruby}}{\endminted}
+\newenvironment{cypher}{\minted{cypher}}{\endminted}

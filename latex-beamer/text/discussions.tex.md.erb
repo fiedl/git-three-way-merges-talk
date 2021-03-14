@@ -1,0 +1,47 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile]{Discussion: Single combo repo vs. separate project repos}
+  \begin{itemize}
+    \item A single repo is easier to grasp for newcomers. One single repo, one central README as entry point. Get all necessary code with one single git clone.
+    \item The github ui makes it easy to filter by project. Projects get their own rendered READMEs, their own histories, etc.
+    \item Meta projects can pull releases of individual projects from single-project repos as well as from a "big" combo repo alike
+    \item We can merge single-project git repos later into combo, preserving both histories
+    \item During the 2019-10-31 software call, it was argued that the optimal solution would be to manage dependencies using a package-management tool. Gitman is a simple python tool freeze dependencies based on release tags or commit ids. It supports both git and svn. But this cannot be used to manage inter-project dependencies if each project has its own repo (and its own gitman definition).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Discussion: The code was running at 23 October}
+  \begin{itemize}
+    \item This discussion arose in the 2019-10-31 software call from the scenario: "I checked out the code on 23 October. Then it worked. Now it doesn’t. Why?"
+    \item In git, by design, there is no answer to the question: What was the code on 23 October. Because several people can have their own branches at this time.
+    \item Several people were hoping that enforcing a linear history would enable us to answer the question. But if I create commits locally, push them together next week, nobody has pushed in the meantime, i.e. fast-forward, then I will have changed the answer to the question: What was the code on 2 Nov.
+    \item I’ve never seen something like `git log --show-push-date`, because I think, this is not well defined in git, because git is distributed, i.e. there could be several truths to the answer. I could push the code to several remotes at different times.
+    \item One solution would be to rewrite history on push such that I have the commit date be the push date. But I really don’t like history rewrites, because they change my commit ids.
+    \item We should log the commit id and the current date time to a log file when executing the `env-shell.sh` and icetray. This way, we could ask people that need support to grep that log file (`grep 2019-10-23 /var/log/icetray.log`) and give us the commit id from the output.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Discussion: Changing history}
+  \begin{itemize}
+    \item During the 2019-10-31 software call, it has been suggested that history rewrites might provide solutions to some of the open issues.
+    \item Personally, I log my commit id in my lab journals. This way, I can reproduce results later.
+    \item Also, when I work with somebody else on a feature branch, we need to agree on commit ids. When one of us changes commit ids, then our shared history is broken.
+    \item When changing commit ids of commits already pushed, someone else could have fetched those (outdated) commits and based his own work on these. When merging his code later, this would re-introduce the outdated commits (or force to do a rebase, which then requires to change commit ids, again)
+    \item Knowing a commit id of some point in development, gives us the information what commits the developer already during the development. When rebasing, this information is lost.
+    \item I would vote for: Never change commit ids of commits that have already been pushed.
+    \item This requires us to allow (non-linear) graph histories.
+    \item Non-linear histories are harder to read
+    \item Non-linear histories reflect the truth of what actually happened during development
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Discussion: Running checks for pushes to master}
+  \begin{itemize}
+    \item Github allows checks for pull requests (author email, big files, ...)
+    \item Github only allows checks for pull requests. For rejecting pushes to master based on these checks, we would need gitlab or github enterprise.
+    \item We still can run these checks after pushes with github actions.
+    \item We can use this to send warnings via email.
+    \item We can even reset the master and move the commits into a feature branch using github actions. But there is a time delay of several seconds.
+  \end{itemize}
+\end{frame}
+

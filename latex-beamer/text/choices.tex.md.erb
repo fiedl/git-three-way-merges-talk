@@ -1,0 +1,47 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile]{Choices}
+
+  \begin{itemize}
+    \item Use the existing \url{https://github.com/IceCube-SPNO/IceTrayCombo} repository
+    \item Make \url{https://github.com/IceCube-SPNO/IceTrayCombo} git-writable
+    \item Allow non-linear histories
+    \item Allow pushes to master
+    \item Encourage, but don't require pull-request workflow, including reviews
+    \item Enable checks for pull requests:
+      \footnotesize
+      \begin{itemize}
+        \item Reject if the icecube password is committed
+        \item Reject if large (gigabyte) files are committed
+        \item Make sure the commit authors have valid email addresses
+        \item Make sure the tests are green (CI)
+      \end{itemize}
+      \normalsize
+    \item Run same checks for pushes to master and send warnings (or even reset?)
+  \end{itemize}
+
+  \vfill\small
+  Continued on next slide ...
+
+  For the reasons, check \url{https://github.com/fiedl/icecube-git-migration/issues/9}
+
+\end{frame}
+
+\begin{frame}[fragile]{Choices}
+
+  \begin{itemize}
+    \item Make people collaborators and allow feature branches in origin
+    \item Allow issues on github
+    \item Allow private forks of combo
+    \item Have `env-shell.sh` print combo's git commit id. Also log the current datetime and the commit id to log file on icetray execution.
+    \item Welcome to IceCube! Add a `README.md` with getting-started and practical usage information. how to run the tests, links to documentation, and further resources. (like \href{https://github.com/IceCube-SPNO/IceTrayCombo/tree/master/monopole-generator}{monopole-generator/README.md})
+    \item Test the build instructions with github actions
+    \item Run the tests with github actions (CI) — for all pull requests and branches
+    \item (almost) never rewrite history, i.e. never change commit hashes that have already been pushed
+    \item Import histories of the individual projects, as well as histories of icerec and icesim.
+    \item Allow, but discourage shadow repositories of individual projects
+    \item Make a series of screencasts to help the adoption of git by showing how-tos and highlighting the advantages — I do have the necessary equipment and volunteer
+    \item Define the `#git_migration` slack channel as central point of asking for help.
+  \end{itemize}
+
+\end{frame}

@@ -1,0 +1,29 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile]{Local migration steps}
+
+  What would an icecuber need to change locally?
+
+  \begin{itemize}
+    \item Create a github account
+    \item Become a member of the github icecube group
+    \item Copy ssh key to github
+    \item To get combo, one now needs to run something different:
+
+      \begin{bash}
+      # old:
+      svn checkout http://code.icecube.wisc.edu/svn/meta-projects/combo/trunk src
+
+      # new:
+      git clone git@github.com:IceCube-SPNO/IceTrayCombo.git src
+      svn checkout https://github.com/IceCube-SPNO/IceTrayCombo.git/trunk src
+      \end{bash}
+
+      \question{Do we know how to "symlink" the \href{http://code.icecube.wisc.edu/svn/meta-projects/combo}{meta-projects/combo} folder to github?}
+  \end{itemize}
+
+  \vfill
+  \tiny See also: \url{https://github.com/fiedl/icecube-git-migration/issues/9}
+
+\end{frame}
+

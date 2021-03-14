@@ -1,0 +1,36 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile,t]{Compromise}
+
+  \begin{center}
+    \Large \textbf{Time to compromise}
+    \vspace{1em}
+  \end{center}
+
+  \begin{onlyenv}<1>
+    \begin{itemize}
+      \item Want to go \textit{somewhere forward}
+      \item Not everyone would support the same goals/choices\\
+        or does care to use the same git features/tools.
+      \item I've talked to Nathan and other people that I thought would prefer other choices than myself.
+      \item[\follows] \alert{Compromise}
+    \end{itemize}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+    \begin{itemize}
+      \item In principle, \alert{allow} much. Otherwise, there will be friction, and there will be forks with other settings.
+        But give \alert{clear encouragements} in easy-to-digest guides.
+        \begin{itemize}
+          \item \alert{Allow} direct pushes to \alert{`main`}. But \alert{encourage pull-request} workflow \& provide good guides.
+          \item \alert{Don't enforce} but \alert{encourage linear} histories. There are valid cases when using non-linear histories is useful. But guide users how to keep the \alert{changelog clean}.
+          \item Also up to the maintainer or admin whether to \alert{squash/rebase/merge} a \alert{particular pull request}. There are valid cases for each.
+            Inexperienced contributors may need more guidance here.
+        \end{itemize}
+      \item Accept that this model is \alert{not bullet-proof} for now and allow \alert{iterations} of this \alert{workflow} (Erik).
+      \item Don't forget to prompt the \alert{commit id} rather than the svn revision in icetray.
+      \item \alert{Never rewrite history} \scriptsize when people had the chance to base work on it.
+    \end{itemize}
+  \end{onlyenv}
+
+\end{frame}

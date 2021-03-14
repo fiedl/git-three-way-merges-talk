@@ -1,0 +1,978 @@
+%!TEX TS-program = ../make.zsh
+
+% Supplementary commands for the diagram to be shown on these slides.
+%
+\newcommand\decision[5]{%
+  \arctext[#4][SkyArc][6pt](7.0)(#1)(#3){|\scriptsize| };%
+  \node [anchor=west, rotate=#2] at (0,0) {\hspace*{7.3cm} \Huge \rotatebox{180}{#5}};%
+}
+\newcommand\effect[5]{%
+  \arctext[#4][RedArc][6pt](7.0)(#1)(#3){|\color{white}| };%
+  \node [anchor=west, rotate=#2] at (0,0) {\hspace*{7.3cm} \Huge #5};%
+}
+
+% Indicate that the effect #1 is compatible with the choice #2.
+% #3: Opacity, which allows highlighting, e.g. 0.2.
+% #4: Color, e.g. 'green'
+%
+\newcommand\arcupper[4]{%
+  \path[fill=#4,opacity=#3] (below left #1) to (below right #1) to [bend left] (below left #2) to (below right #2) to [bend right] (below left #1);
+}
+\newcommand\arclower[4]{%
+  \path[fill=#4,opacity=#3] (below left #1) to (below right #1) to [bend right] (below left #2) to (below right #2) to [bend left] (below left #1);
+}
+\newcommand\arcdiag[4]{%
+  \path[fill=#4,opacity=#3] (below left #1) to (below right #1) to [bend right] (below right #2) to (below left #2) to [bend left] (below left #1);
+}
+\newcommand\connectionline[4]{%
+  \draw[line width = 2pt, color = #4, opacity = #3] (below #1) to (below #2);
+}
+
+
+<%
+  # compatible_arc :bisection, :merge
+  # compatible_arc :bisection, :merge, highlight: "merge"
+  # compatible_arc :bisection, :merge, highlight: "merge bisection"
+  # compatible_arc :bisection, :merge, highlight: "merge rewrites"
+  #
+  def compatible_arc(effect, choice, highlight: "")
+    arc effect, choice, highlight: highlight, color: 'green'
+  end
+
+  def exclude_arc(effect, choice, highlight: "")
+    arc effect, choice, highlight: highlight, color: 'red'
+  end
+
+  def arc(effect, choice, highlight: "", color: 'green')
+    if highlight == ""
+      opacity = 0.8
+    else
+      opacity = 0.8 if highlight.include? effect.to_s
+      opacity = 0.8 if highlight.include? choice.to_s
+      opacity ||= 0.05
+    end
+    # upper_effects = %w(bisection conflict_resolution commit_ids changelogs easy_workflow robust_workflow)
+    # upper_choices = %w(rebase squash merge push_to_main)
+    # if upper_effects.include?(effect.to_s) and upper_choices.include?(choice.to_s)
+    #   "\\arcupper{#{effect}}{#{choice}}{#{opacity}}{#{color}}"
+    # elsif !upper_effects.include?(effect.to_s) and !upper_choices.include?(choice.to_s)
+    #   "\\arclower{#{effect}}{#{choice}}{#{opacity}}{#{color}}"
+    # else
+    #   "\\arcdiag{#{effect}}{#{choice}}{#{opacity}}{#{color}}"
+    # end
+    "\\connectionline{#{effect}}{#{choice}}{#{opacity}}{#{color}}"
+  end
+%>
+
+<%
+  # Show a diagram visualizing the possible choices and their
+  # implications.
+  #
+  def choice_diagram(highlight: "", empty: false)
+    exclusions = {
+      bisection: %w(rebase push_to_main enforce_linear),
+      blame: %w(squash enforce_linear),
+      conflict_resolution: %w(rebase squash rewrite enforce_linear),
+      commit_ids: %w(rebase squash rewrite enforce_linear),
+      changelogs: %w(),
+      easy_workflow: %w(push_to_main strict_git_flow rewrite enforce_linear),
+      robust_workflow: %w(push_to_main rewrite enforce_linear),
+      quick_migration: %w(strict_git_flow),
+      avoid_large_files: %w(push_to_main),
+      avoid_rename_main: %w(push_to_main rewrite),
+      ci: %w(rewrite),
+      feature_collaboration: %w(enforce_linear),
+      code_reviews: %w()
+    }
+
+    latex = <<~LATEXSTRING
+      \\hspace*{-1em}\\resizebox{1\\columnwidth}{!}{%
+        \\begin{tikzpicture}[
+            % Environment Cfg
+            font=\\sf    \\footnotesize,
+          ]
+
+          % \\decision{118}{100}{rebase}{Allow rebase}
+          % \\decision{138}{120}{squash}{Allow squash}
+          % \\decision{158}{140}{merge}{Allow merge}
+          % \\decision{190}{160}{push_to_main}{Allow direct pushes to main}
+          % \\decision{192}{214}{strict_git_flow}{Require strict git flow}
+          % \\decision{216}{238}{rewrite}{Allow history rewrites}
+          % \\decision{240}{260}{pull_requests}{Allow pull requests}
+
+          % \\effect{76}{70}{65}         {bisection}             {Bisection
+          % \\effect{63}{57}{52}         {conflict_resolution}   {Auto conflict resolution
+          % \\effect{50}{44}{39}         {commit_ids}            {Reproducibility by commit id
+          % \\effect{37}{31}{26}         {changelogs}            {Readable changelogs
+          % \\effect{24}{18}{13}         {easy_workflow}         {Easy workflow
+          % \\effect{11}{5}{0}           {robust_workflow}       {Robust workflow
+          % \\effect{-13}{-8}{-2}        {quick_migration}       {Quick migration
+          % \\effect{-26}{-21}{-15}      {avoid_large_files}     {Avoid committing of large files
+          % \\effect{-39}{-34}{-28}      {avoid_rename_main}   {Avoid renaming main
+          % \\effect{-52}{-47}{-41}      {ci}                    {Continuous tests
+          % \\effect{-65}{-60}{-54}      {feature_collaboration} {Easy feature collaboration
+          % \\effect{-78}{-73}{-67}      {code_reviews}          {Easy code reviews
+
+          LATEXSTRING
+
+          decisions = {
+            pull_requests: "Allow pull requests?",
+            strict_git_flow: "Require strict git flow?",
+            push_to_main: "Allow direct pushes to main?",
+            rewrite: "Allow history rewrites?",
+            rebase: "Allow rebase?",
+            squash: "Allow squash?",
+            merge: "Allow merge?",
+            enforce_linear: "Enforce linear history?"
+          }
+
+          # Calculate the sizes and positions for the decisions:
+          size = 160
+          max = 260
+          sep = 1
+          min = max - size - sep
+          num = decisions.count
+          width = size / num
+          offset = (size - num * width) / 2
+
+          (0..(num - 1)).to_a.each do |i|
+            left_bound = offset + min + (i) * width + sep
+            right_bound = offset + min + (i + 1) * width - sep
+            mid = (left_bound + right_bound) / 2
+            if right_bound > 0
+              position_arguments = "{#{right_bound}}{#{mid}}{#{left_bound}}"
+            else
+              position_arguments = "{#{left_bound}}{#{mid}}{#{right_bound}}"
+            end
+
+            key = decisions.keys[i]
+            if highlight.include? key.to_s
+              text = "\\colorbox{yellow}{#{decisions[key]}}"
+            else
+              text = decisions[key]
+            end
+
+            latex += "\\decision #{position_arguments} {#{key}} {#{text}}"
+          end
+
+          goals = {
+            bisection: "Bisection",
+            blame: "Git blame",
+            conflict_resolution: "Auto conflict resolution",
+            commit_ids: "Reproducibility by commit id",
+            changelogs: "Readable changelogs",
+            easy_workflow: "Easy workflow",
+            robust_workflow: "Robust workflow",
+            quick_migration: "Quick migration",
+            avoid_large_files: "Avoid committing of large files",
+            avoid_rename_main: "Avoid renaming main",
+            ci: "Continuous tests",
+            feature_collaboration: "Easy feature collaboration",
+            code_reviews: "Easy code reviews"
+          }
+
+          # Calculate the sizes and positions for the goals:
+          size = 160
+          max = 80
+          sep = 1
+          min = max - size - sep
+          num = goals.count
+          width = size / num
+          offset = (size - num * width) / 2
+
+          (0..(num - 1)).to_a.each do |i|
+            left_bound = offset + min + (num - i - 1) * width + sep
+            right_bound = offset + min + (num - i) * width - sep
+            mid = (left_bound + right_bound) / 2
+            if right_bound > 0
+              position_arguments = "{#{right_bound}}{#{mid}}{#{left_bound}}"
+            else
+              position_arguments = "{#{left_bound}}{#{mid}}{#{right_bound}}"
+            end
+
+            key = goals.keys[i]
+            if highlight.include? key.to_s
+              text = "\\colorbox{yellow}{#{goals[key]}}"
+            else
+              text = goals[key]
+            end
+
+            latex += "\\effect #{position_arguments} {#{key}} {#{text}}"
+          end
+
+          all_choices = decisions.keys
+          all_effects = goals.keys
+
+          unless empty
+            for choice in all_choices
+              for effect in all_effects
+                if not(exclusions[effect.to_sym] && exclusions[effect.to_sym].include?(choice.to_s))
+                  latex += compatible_arc effect, choice, highlight: highlight
+                end
+              end
+            end
+
+            for choice in all_choices
+              for effect in all_effects
+                if exclusions[effect.to_sym] && exclusions[effect.to_sym].include?(choice.to_s)
+                  latex += exclude_arc effect, choice, highlight: highlight
+                end
+              end
+            end
+          end
+
+          latex += <<~LATEXSTRING
+          \\node (legend) at (-15.5,-12.5) { \\Large Legend:};
+          \\draw[line width = 2pt, color = green] (legend)++(0,-0.4) -- ++(.8,0) node[anchor=west, color = black] { \\ \\Large Compatible};
+          \\draw[line width = 2pt, color = red] (legend)++(0,-0.8) -- ++(.8,0) node[anchor=west, color = black] { \\ \\Large Excludes};
+          \\draw[SkyArc] (legend)++(0,-1.2) rectangle ++(.8,-.3)++(0,.2) node[anchor=west, color = black] { \\ \\Large Choice};
+          \\draw[RedArc] (legend)++(0,-1.8) rectangle ++(.8,-.3)++(0,.2) node[anchor=west, color = black] { \\ \\Large Goal};
+        \\end{tikzpicture}
+      }
+    LATEXSTRING
+    return latex
+  end
+
+%>
+
+\newcommand\choice[1]{\textcolor{skybox}{#1}}
+\newcommand\goal[1]{\textcolor{ocre}{#1}}
+\newcommand\goals{\mbox{\tikz{\draw[RedArc] (0,0) rectangle ++(.8,-.3)++(0,.2);} \goal{goals}}\xspace}
+\newcommand\choices{\mbox{\tikz{\draw[SkyArc] (0,0) rectangle ++(.8,-.3)++(0,.2);} \choice{choices}}\xspace}
+\newcommand\works{\cmark}
+\newcommand\fails{\xmark}
+
+\begin{frame}[fragile]{Introduction}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram empty: true %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item We do have to make some \choices regarding the upcoming git migration.
+      \item We have to agree on what \goals we want to pursue.
+      \item Some of the goals help us to \alert{narrow down the options} for our choices.
+      \item In the end, we will probably need to make some \alert{compromises}.
+    \end{itemize}
+
+    \vspace{2em}
+    \small \follows \hyperlink{slide:conclusions}{Go straight to the conclusions}
+
+  \end{column}
+
+\end{frame}
+
+\section{Goals and Choices}
+
+\begin{frame}[fragile]{Choices}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram empty: true %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item From the software calls and the slack discussion, I gather that the major \choices would be:
+        \begin{itemize}
+          \item \normalsize Allow \choice{rebasing commits} \footnotesize when merging pull requests?
+          \item \normalsize Allow \choice{squash commits} \footnotesize when merging pull requests?
+          \item \normalsize Allow \choice{merge commits} \footnotesize when merging pull requests?
+          \item \normalsize Allow direct \choice{pushes to `main`} \footnotesize for all users?
+          \item \normalsize \choice{Strictly} require to follow \choice{\textit{git flow}}?
+          \item Allow history \choice{rewrites}?
+          \item Allow github's \choice{pull-request} workflow?
+          \item Enforce \choice{linear history}?
+        \end{itemize}
+      \item Anything missing?
+      \item Lighter versions (\textit{encourage/discourage}) also an option.
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+\begin{frame}[fragile]{Goals}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram empty: true %>
+
+    \vfill\scriptsize\vspace{2em}
+    \begin{itemize}
+      \item Anything missing?
+      \item Can weight those later.
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \scriptsize
+      %\item From the software calls and the slack discussion, some of our \goals would be:
+      %  \begin{itemize}
+          \item Enable \goal{`git bisect`} on the `main` branch
+          \item Use \goal{`git blame`} to find the context of a changed line
+          \item Utilize git's advanced auto \goal{conflict resolution}
+          \item Enable \goal{reproducing} results (simulations, plots) by using the same code base identified by git's \goal{commit ids}.
+          \item \goal{Readable changelogs} without commit clutter
+          \item \goal{Easy} workflow: Don't ask too much of our users
+          \item \goal{Robust} workflow: Don't break stuff. Don't create frustration. Don't produce a situation that needs manual clean up.
+          \item Get our users \goal{quickly} going after our migration from svn to git
+          \item Avoid accidental commits of \goal{large files}
+          \item Avoid \goal{renaming the `main`} branch
+          \item Check code continuously with \goal{tests}
+          \item Enable easy \goal{collaboration on features}
+          \item Enable easy \goal{code reviews}
+      %  \end{itemize}
+      %\item Anything missing?
+      %\item No weighting for now. Let's weight or chose them later.
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+\section{Connecting Goals and Choices}
+
+\section{Bisection}
+\begin{frame}[fragile]{Goals: Bisection}
+  \label{slide:bisection}
+
+  \begin{column}{0.45\textwidth}
+    \resizebox{0.9\columnwidth}{!}{
+    \begin{tikzpicture}
+      \gitDAG{
+        A -- B -- C -- D -- E
+      };
+      \gitbranch{main}{above = of E}{E};
+      \gittag{works here}{below = of A}{A};
+      \gittag{?}{below = of B}{B};
+      \gittag{?}{below = of C}{C};
+      \gittag{?}{below = of D}{D};
+      \gittag{fails here}{below = of E}{E};
+    \end{tikzpicture}
+    }
+
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \header{What is bisection?}
+    \begin{itemize}
+      \item Consider a feature that you know has worked in commit `A`, but fails in commit `E`.
+      \item There are a lot of commits in between. \alert{Where did it break?}
+      \item Idea: Write a \alert{test script} and run it with `git bisect` to efficiently find the commit that breaks the test script.
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://git-scm.com/docs/git-bisect}}
+\end{frame}
+
+\begin{frame}[fragile]{Goals: Bisection}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "bisection" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \small
+    \begin{itemize}
+      \item[\fails] \goal{Bisection} $\rightarrow \neg$ \choice{Allow rebase merges for pull requests}
+        because this adds feature-branch commits to the `main` branch, which might include breaking commits, introducing a flapping behavior, which slows down bisection significantly.
+      \item[\fails] This also means that we then can't use rebases to \choice{enforce linear history}.
+      \item[\fails] \goal{Bisection} $\rightarrow \neg$ \choice{Allow direct pushes to `main`}
+        because direct pushes to `main` would enable people to \hyperlink{slide:rename_main}{rename the `main` branch}. This pollutes the `main` branch with feature-branch commits or even removes commits from the `main`, which prevents bisection on `main`.
+      \item[\works] \goal{Bisection} does work with \choice{Merge commits}
+        because one can skip the commits of the feature branches from bisection using the `--first-parent` parameter.
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://github.com/fiedl/icecube-git-migration/issues/11}, \url{https://github.com/fiedl/bisect-only-main-branch-test/issues/2}, \url{https://blog.quantic.edu/2015/02/03/git-bisect-debugging-with-feature-branches/}}
+\end{frame}
+
+\section{Git blame}
+\begin{frame}[fragile]{Goals: Git blame}
+  \begin{column}{0.45\textwidth}
+    \resizebox{0.9\columnwidth}{!}{
+    \begin{tikzpicture}
+      \gitDAG{
+        A -- B -- { C -- F [xshift = 1cm],
+          D -- E},
+          E -- F
+      };
+      \gitbranch{main}{above = of F}{F};
+      \gittag{Strange line introduced here}{below = of D}{D};
+    \end{tikzpicture}
+    }
+
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \header{What is `git blame`?}
+    \begin{itemize}
+      \item Suppose, you are on `main` and find a strange code line in `code.py` you can't make sense of.
+      \item Idea: To get an idea of the \alert{context the line was introduced} in, run `git blame code.py`, which helps you to identify the commit `D` that has introduced the line.
+      \item Now look at the commit message of commit `D` and the other changes made in this commit.
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://git-scm.com/docs/git-blame}}
+\end{frame}
+
+\begin{frame}[fragile]{Goals: Git blame}
+  \label{slide:blame}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "blame" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item[\fails] When using \goal{`git blame`} with \choice{squash commits}, the summary commit (`F` in the example)
+        is the commit returned by `git blame`. If there are many changes, this context might not be specific enough to
+        make sense of the line in question.
+      \item[\fails] This also means that we lose this detailed `git blame` if we use squash commits to \choice{enforce linear history}.
+      \item[\works] When using \goal{`git blame`} with \choice{merge commits}, the specific commit introducing the line
+        in question can be found.
+      \item[\works] The \goal{`git blame`} behavior of squash commits, i.e. returning the summary commit,
+        can be emulated when using \choice{merge commits}
+        by using `git blame --first-parent`.
+    \end{itemize}
+  \end{column}
+
+  \source{\url{hhttps://www.felixmoessbauer.com/blog-reader/why-git-squash-merges-are-bad.html}, \url{https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---first-parent}}
+\end{frame}
+
+\section{Auto conflict resolution}
+\begin{frame}[fragile]{Goals: Auto conflict resolution}
+  \label{slide:conflict_resolution}
+
+  \begin{column}{0.4\textwidth}
+    \includegraphics[width=\columnwidth]{img/merge-test-question}
+
+    \vspace{3cm}
+    \alert{Real-world} example: You open a pull request and need to \alert{base other work} on that feature branch \alert{while waiting} for pull-request approval.
+  \end{column}
+  \begin{column}{0.6\textwidth}
+    \header{What is automatic conflict resolution?}
+    \small
+    \begin{itemize}
+      \item Git uses a \alert{directed acyclic graph (DAG)} to store which commits a new commit is based on. This makes git very powerful when it comes to resolving merge conflicts automatically.
+      \item Suppose, an error is introduced in the `feature-a` branch. The `feature-b` branch is based on the `feature-a` branch and does also include this error.
+        The error is later fixed in `feature-a` and the fix is merged into `main`.
+      \item[\fails] Without the DAG information, git would \alert{re-introduce} the already \alert{fixed error} into `main` when merging `feature-b`
+        because it could only compare the two code states of `main` and `feature-b` (\textit{2-way merge}).
+      \item[\works] With the DAG information, the fix takes precedence when merging `feature-b`
+        because git compares the changes to the common ancestor commit, which can be determined from the DAG
+        (\textit{3-way merge}).
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://git-scm.com/docs/merge-strategies}}
+\end{frame}
+
+
+\begin{frame}[fragile]{Goals: Auto conflict resolution}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "conflict_resolution" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \only<1>{
+        \item[\fails] \goal{Auto conflict resolution} $\rightarrow \neg$ \choice{Allow rebase merges}
+        \item[\fails] \goal{Auto conflict resolution} $\rightarrow \neg$ \choice{Allow squash merges}
+        \item[\fails] \goal{Auto conflict resolution} $\rightarrow \neg$ \choice{Enforce linear history}
+
+        because rebase commits and squash commits do not keep the graph dependency information to the commits in the feature branch. If one would base work onto commits from the feature branch, conflicts could not be resolved automatically, later.
+
+        \tiny \vspace{1em} Experiment: \url{https://github.com/fiedl/icecube-git-migration/issues/15}
+
+        \begin{center}
+          \includegraphics[width=0.7\columnwidth]{img/squash-test}
+        \end{center}
+      }
+      \only<2>{
+        \item \goal{Auto conflict resolution} $\rightarrow \neg$ \choice{Allow history rewrites}
+
+        because this destroys the dependency information to any own work in cloned repositories.
+
+        We would need to make sure that \emph{everyone} re-clones the repo and re-commits his own work before creating a pull request. Otherwise, git can't resolve the dependencies and merge the pull request.
+
+        \vspace{1em}
+        \scriptsize One of the golden git rules is:
+          \begin{quote}
+            Do not rebase commits that exist outside your repository and that people may have based work on. ... If you don’t, people will hate you, and you’ll be scorned by friends and family.
+          \end{quote}
+        \tiny \url{https://git-scm.com/book/en/v2/Git-Branching-Rebasing#_rebase_peril}
+      }
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+\section{Reproducibility by commit id}
+\begin{frame}[fragile]{Goals: Reproducibility by commit id}
+  \label{slide:commit_ids}
+
+  \begin{column}{0.45\textwidth}
+    \resizebox{0.9\columnwidth}{!}{
+    \begin{tikzpicture}
+      \gitDAG{
+        A -- B -- { C -- F [xshift = 1cm],
+          D -- E},
+          E -- F
+      };
+      \gitbranch{main}{above = of F}{F};
+      \gittag{e3f64d9}{below = of D}{D};
+    \end{tikzpicture}
+    }
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \header{What is reproducibility by commit id?}
+    \begin{itemize}
+      \item Git uses \alert{unique commit ids}, e.g. `e3f64d9` to reference repository state.
+      \item If one does know the commit id, one can reproduce the repository state regardless of the branch the commit has been made on.
+      \item Idea: Have icetray output and \alert{log the commit id} of the combo repository along datetime when executing. Encourage people to commit before executing noteworthy runs.
+      \item This way, the run results can be reproduced using the respective commit ids of combo and the script's repo.
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection}}
+\end{frame}
+
+\begin{frame}[fragile]{Goals: Reproducibility by commit id}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "commit_ids" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item[\fails] \goal{Reproducibility} $\rightarrow \neg$ \choice{Allow rebase merges for pull requests}
+      \item[\fails] \goal{Reproducibility} $\rightarrow \neg$ \choice{Allow squash merges for pull requests}
+      \item[\fails] \goal{Reproducibility} $\rightarrow \neg$ \choice{Enforce linear history}
+      \item[\fails] \goal{Reproducibility} $\rightarrow \neg$ \choice{History rewrites}
+
+      because the original commits can become dangling (\textit{unreachable}) and than be removed by garbage collection. Then, they the original commits cannot be accessed anymore.
+
+      \scriptsize See also: \url{https://github.com/fiedl/icecube-git-migration/issues/18}
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://git-scm.com/docs/git-gc}}
+\end{frame}
+
+\section{Readable changelogs}
+\begin{frame}[fragile]{Goals: Readable changelogs}
+  \label{slide:changelogs}
+
+  \begin{columns}[t]
+  \begin{column}{0.4\textwidth}
+    \header{Bad changelog}
+
+    \begin{Verbatim}[fontsize=\tiny]
+    e3f64d9e  fixing issue
+    0a61924e  Merge branch 'fix' into 'main'
+    a91acb11  Working on cable shadows...
+    361ad89d  Fix steamshovel
+    \end{Verbatim}
+
+  \end{column}
+  \begin{column}{0.6\textwidth}
+    \header{Better changelog}
+
+    \begin{Verbatim}[fontsize=\tiny]
+    a1e5e5c7  [clsim] Cable shadows: Make the cable radius configurable.
+
+              When using direct cable simulations, add the cable radius
+              using the 'cable_width' parameter of the 'I3CLSimFoo'
+              module.
+
+              Example:
+
+                  tray.AddModule("I3CLSimFoo",
+                    direct_cable_simulation = True,
+                    cable_width = 5 * I3Units.centimetres
+                  )
+
+              Defaults to 3cm.
+
+              See also: https://wiki.icecube.wisc.edu/index.php/Cables
+
+    0a61924e  [steamshovel] Fixing syntax error that has prevented
+
+              steamshovel from displaying any photon tracks.
+
+              Fixes https://github.com/icecube-spno/IceTrayCombo/issues/12345
+    \end{Verbatim}
+
+    \vspace{1em}
+    Even better would be adding \alert{links}, code \alert{highlighting}, etc.
+  \end{column}
+  \end{columns}
+
+  \source{\url{https://git-scm.com/docs/git-log}}
+\end{frame}
+
+\begin{frame}[fragile]{Goals: Readable changelogs}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "changelogs" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item[\works] \goal{Readable changelogs} go well with \choice{merge commits}, even if the commit messages of the feature branches are less readable.
+
+        In the terminal, one can show only the commits on the `main`
+        branch and hide the commits of the feature branches using
+        `git log --first-parent`.
+
+        We could also generate `CHANGELOG.md` files for the combo repo and its project directories
+        by tying a \hyperlink{https://github.com/topics/changelog-generator}{changelog generator} into a \textit{github action}.
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://github.com/fiedl/bisect-only-main-branch-test/issues/2}, \url{https://github.com/fiedl/icecube-git-migration/issues/11}, \url{https://github.com/topics/changelog-generator}}
+\end{frame}
+
+
+\section{Easy workflow}
+\begin{frame}[fragile]{Goals: Easy workflow}
+  \label{slide:easy_workflow}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "easy_workflow" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \only<1>{
+        \item An \goal{easy workflow} would be one that is \alert{easy and fast to learn by people} new to icecube or git.
+
+        \item[\fails] \goal{Easy workflow} $\rightarrow \neg$ \choice{Require strict git flow} \\
+          because newcomers would need to lookup many conventions and would be required to think about these and
+          other questions before committing any code:
+
+          \tiny
+          \begin{itemize}
+            \item Is my change a hot fix?
+            \item Is my change a feature?
+            \item On which branch do I need to base my work on?
+            \item Do I need to create this pull request against `main`/`dev`/`whatever`?
+            \item Do I need to cherry-pick this patch to some other branch as well?
+          \end{itemize}
+
+          \normalsize
+        \item[\works]
+          While \hyperlink{https://nvie.com/posts/a-successful-git-branching-model/}{git flow} is very structured and considered robust, a simple
+          \hyperlink{https://guides.github.com/introduction/flow/}{github \choice{pull-request} workflow} would be more approachable for new users.
+      }
+      \only<2>{
+        \small
+        \item[\fails] \goal{Easy workflow} $\rightarrow \neg$ \choice{Allow direct pushes to main for all users}
+
+        \begin{itemize}
+          \item because all users would need to be careful not to
+            \hyperlink{slide:rename_main}{rename the `main` branch} by accident.
+          \item When pushes to `main` are rejected due to commits on `main` created by other users in the meantime,
+            this will create frustration for new users. They will want to publish their changes with minimum effort
+            and may even avoid pushing their changes if they find it hard.
+        \end{itemize}
+
+        \item[\works] With a standard \hyperlink{https://guides.github.com/introduction/flow/}{github \choice{pull-request} workflow}, these problems do not arise.
+
+        \item[\follows] Nathan: Allow commits to `main`, but encourage to use pull requests (\textit{"if you don't know what you are doing and why, do this"}).
+        \item[\follows] Clear guides, screencasts
+        \normalsize
+      }
+
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://nvie.com/posts/a-successful-git-branching-model/}, \\ \url{https://guides.github.com/introduction/flow/}}
+\end{frame}
+
+\begin{frame}[fragile]{Goals: Easy workflow}
+  \begin{center}
+    \includegraphics[width=\0.5\textwidth]{img/github-desktop-sync-button}
+
+    \begin{itemize}
+      \item Note: Clicking the \textit{Sync} button on the github application will push directly to `main` if not protected and not switched to another branch.
+      \item[\follows] Need to watch out for problems
+    \end{itemize}
+
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Goals: Easy workflow}
+  \label{slide:easy_workflow}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "easy_workflow" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+        \item[\fails] \goal{Easy workflow} $\rightarrow \neg$ \choice{History rewrites}
+
+        \begin{itemize}
+          \item because rewrites would require \her{everyone} to \her{re-clone} the repo and transfer his/her \her{own work} to the re-cloned repo before pushing anything.
+          \item `git pull` will be rejected without obvious reason.
+          \item Transferring existing commits to the new history works, but requires manual management of \textit{branches} or \textit{remotes} (not easy).
+        \end{itemize}
+    \end{itemize}
+  \end{column}
+
+  \source{\url{https://nvie.com/posts/a-successful-git-branching-model/}, \\ \url{https://guides.github.com/introduction/flow/}}
+\end{frame}
+
+\section{Robust workflow}
+\begin{frame}[fragile]{Goals: Robust workflow}
+  \label{slide:robust_workflow}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "robust_workflow" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \only<1>{
+        \item A \goal{robust workflow} would be one that \alert{prevents regular users from causing damage} that
+          would require admins to perform \alert{fixes or clean-ups}.
+
+        \item[\fails] \goal{Robust workflow} $\rightarrow \neg$ \choice{Allow direct pushes to main for all users}
+        \begin{itemize}
+          \item[\fails] because it would allow anyone to \hyperlink{slide:rename_main}{rename the `main` branch}, which would require clean-up, \choice{history rewrites}, or break \goal{bisection} and \goal{readable changelogs}.
+          \item[\fails] \choice{Pushes to main} circumvent automated checks.
+          \item[\fails] \choice{Pushes to main} are not revertable without \choice{history rewrites}.
+        \end{itemize}
+        \item \underline{But}: \choice{Preventing pushes to `main`} could also cause friction $\rightarrow$ need good guides
+      }
+
+      \only<2>{
+        \item[\fails] In the same sense, \choice{enforcing linear histories} also causes friction. Worst case: Parallel, long-lived forks and long-term fragmentation.
+        \item[\fails] \goal{Robust workflow} $\rightarrow \neg$ \choice{Allow history rewrites}
+
+        \begin{itemize}
+          \item[\fails] because creating pull requests based on the old history won't work due to \textit{unrelated history} error.
+          \item[\fails] Pushing commits based on the old history will re-upload the old history resulting in having both, original and duplicate commits in the same git graph.
+        \end{itemize}
+      }
+
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+\section{Quick migration}
+\begin{frame}[fragile]{Goals: Quick migration}
+  \label{slide:quick_migration}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "quick_migration" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+        \item A \goal{quick migration} would be one that enables everyone in icecube to \alert{use the github repository}, contribute code, \alert{issues}, \alert{reviews}, etc. \alert{soon without risks}.
+
+        \item[\fails] When requiring \choice{strict git flow}, everyone would need to learn the git-flow conventions before contributing.
+
+        \item[\works] In contrast, people might already know the \choice{pull-request based} \hyperlink{https://guides.github.com/introduction/flow/}{github standard workflow}.
+
+        \small
+        \begin{itemize}
+          \item[\works] Github has worked hard to create a workflow that works well for large projects as well for new contributors.
+          \item[\works] Don't work against the tools (as this would create additional friction and additional work for our admins).
+        \end{itemize}
+
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+
+\section{Avoid accidental commits of large files}
+\begin{frame}[fragile]{Goals: Avoid accidental commits of large files}
+  \label{slide:avoid_large_files}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "avoid_large_files" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item We want to \goal{avoid accidental commits of large files}, e.g. `*.i3` files, that do not gain anything from version control, because they would make the repository larger and slower.
+
+      \item[\works] Providing a suitable `.gitignore` file can help.
+      \item[\works] We can check for large files in \textit{automated checks} when using a \choice{pull-request workflow}.
+
+      \item[\fails] \choice{Allowing direct pushes to main} circumvents automated checks.
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+\section{Avoid renaming the `main` branch}
+\begin{frame}[fragile]{Goals: Avoid renaming the `main` branch}
+  \label{slide:rename_main}
+
+  \begin{columns}
+  \begin{column}{0.5\textwidth}
+    \begin{tikzpicture}
+      % Git merge
+      \only<1-2>{
+        \gitDAG{
+          A -- B -- { E [xshift=2.5cm] ,
+            C -- D}
+        };
+      }
+      \only<1-2>{
+        \gitbranch{main}{above = of E}{E};
+      }
+      \only<1>{
+        \gitbranch{feature}{below = of D}{D};
+      }
+      \only<2>{
+        \gitDAG{
+          A -- B -- { E [xshift=2.5cm] ,
+            C -- D -- F},
+            E -- F
+        };
+        \gitbranch{main}{above = of E}{E};
+        \gitbranch{feature}{below = of F}{F};
+      }
+      \only<3->{
+        \gitDAG{
+          A -- B -- { E [xshift=2.5cm] ,
+            C -- D -- F},
+            E -- F
+        };
+        \gitbranch{feature}{below = of F}{F};
+        \gitbranch{main}{below = of feature}{feature};
+      }
+    \end{tikzpicture}
+
+    \only<4>{
+      \vspace{1cm} The `main` branch now contains the commits `A B C D F` rather than `A B E`.
+
+      \vspace{1em} This breaks \goal{bisection} and \goal{readable changelogs}.
+    }
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    \header{What is renaming the `main` branch?}
+
+    \begin{itemize}
+      \item<1->Consider a `main` branch and a `feature` branch.
+      \item<2->The author of the `feature` branch pulls in the `main` branch to get the changes that have been committed to the `main` branch in the meantime:
+
+        `git checkout feature` \\
+        `git merge main`
+      \item<3-> The author of the `feature` branch merges his feature branch in to `main`, which would be a fast-forward merge at this point.
+
+        `git checkout main` \\
+        `git merge feature`
+    \end{itemize}
+  \end{column}
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}[fragile]{Goals: Avoid renaming the `main` branch}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "avoid_rename_main" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item[\works] Using a \choice{standard pull-request workflow} does not allow to \goal{rename the `main` branch}.
+      \item[\fails] \choice{Allowing direct pushes to main} allows to \goal{rename the `main` branch}.
+      \item[\fails] \choice{Rewriting history}, strictly speaking, also \goal{renames the `main` branch} because it moves the `main` branch label to another commit.
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+\section{Continuous tests}
+\begin{frame}[fragile]{Goals: Use continuous tests}
+  \label{slide:ci}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "ci" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item Using \goal{continuous tests} that run on each commit and on each \choice{pull request} before merging help
+        to avoid or \alet{resolve issues before landing in the `main`} branch.
+      \item Test results are archived and can be accessed from the commits or pull requests.
+
+      \item[\fails] \choice{Rewriting history} destroys the references between commits and the \goal{continuous test} runs. So we would lose the information on which commits the tests succeeded. Or we would have to re-run the tests on all commits of the new history.
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+
+\section{Easy feature collaboration}
+\begin{frame}[fragile]{Goals: Easy feature collaboration}
+  \label{slide:feature_collaboration}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "feature_collaboration" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item[\works] \goal{Collaborating on feature branches} works well with \choice{git flow} as well with the \choice{github pull-request workflow}.
+      \item[\fails] \choice{Allowing rebase commits} and \choice{squash commits in general} are no deal-beaker for \goal{feature collaboration}, but should be avoided in this context.
+
+        \vspace{1em}
+        \scriptsize One of the golden git rules is:
+          \begin{quote}
+            Do not rebase commits that exist outside your repository and that people may have based work on. ... If you don’t, people will hate you, and you’ll be scorned by friends and family.
+          \end{quote}
+        \tiny \url{https://git-scm.com/book/en/v2/Git-Branching-Rebasing#_rebase_peril} \normalsize
+
+      \item[\fails] This is also a scenario where \choice{\underline{enforcing} linear history} would do more harm than good because this would break the dependency graph $\rightarrow$ need to be much more careful, not easy.
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+\section{Easy code reviews}
+\begin{frame}[fragile]{Goals: Easy code reviews}
+  \label{slide:code_reviews}
+
+  \begin{column}{0.45\textwidth}
+    <%= choice_diagram highlight: "code_reviews" %>
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item[\works] \goal{Code reviews} are baked into the \choice{standard github pull-request workflow}.
+      \item[\fails] \goal{Code reviews} don't work for \choice{pushing code directly to the `main` branch}.
+    \end{itemize}
+  \end{column}
+
+\end{frame}
+
+
+\section{Conclusions}
+
+\begin{frame}[fragile]{Conclusions}
+  \label<4>{slide:conclusions}
+
+  \begin{column}{0.45\textwidth}
+    \only<1>{
+      <%= choice_diagram highlight: "robust_workflow" %>
+    }
+    \only<2>{
+      <%= choice_diagram highlight: "bisection conflict_resolution commit_ids changelogs robust_workflow" %>
+    }
+    \only<3>{
+      <%= choice_diagram highlight: "bisection conflict_resolution commit_ids changelogs robust_workflow easy_workflow quick_migration" %>
+    }
+    \only<4>{
+      <%= choice_diagram highlight: "bisection blame conflict_resolution commit_ids changelogs easy_workflow robust_workflow quick_migration avoid_large_files avoid_rename_main ci feature_collaboration code_reviews" %>
+    }
+  \end{column}
+  \begin{column}{0.55\textwidth}
+    \header{To which choices do these goals lead us?}
+    \begin{itemize}
+      \item<1-> Aiming for a \goal{robust workflow}, we need to \choice{forbid history rewrites} and \choice{forbid, restrict, or at least discourage direct pushes to the `main` branch}.
+        \tiny (Slide \ref{slide:robust_workflow}) \normalsize
+
+      \item<2-> Aiming for \goal{bisection}, \goal{auto conflict resolution} and \goal{reproducibility} requires us to \choice{deactivating rebase pull requests} and preferring \choice{merge-commit pull requests} over \choice{squash-commit pull requests}.
+        \tiny (Slides \ref{slide:bisection}, \ref{slide:conflict_resolution}, \ref{slide:commit_ids}) \normalsize
+
+      \item<3-> Aiming for a \goal{quick migration} and an \goal{easy-to-learn workflow}, we should probably go with \choice{github's standard pull-request workflow} rather than a \choice{strict git-flow workflow}.
+        \tiny (Slides \ref{slide:easy_workflow}, \ref{slide:quick_migration}) \normalsize
+
+      \item<4->
+        The other goals considered on these slides are compatible with these choices.
+    \end{itemize}
+  \end{column}
+
+\end{frame}

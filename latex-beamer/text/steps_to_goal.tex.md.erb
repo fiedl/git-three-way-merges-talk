@@ -1,0 +1,40 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}[fragile,allowframebreaks]{Steps until the goal is reached}
+
+  Proposal phase:
+  \begin{itemize}
+    \item[\done] Import combo history to git: \href{https://github.com/IceCube-SPNO/IceTrayCombo}{IceTrayCombo}
+    \item[\done] Propose a set of choices (\href{https://github.com/fiedl/icecube-git-migration/issues/9}{\#9})
+    \item[\inprogress] Check with experiments and tests that this proposal would actually work
+    \item[\tobedone] Challenge proposal by posting scenarios in the `#git_migration` slack channel or in the \href{https://github.com/fiedl/icecube-git-migration/issues}{issues}
+    \item[\tobedone] Approve this proposal
+    \item[\tobedone] Make an early announcement that everyone should get a github account and collaborator access
+  \end{itemize}
+
+  \vspace{1cm}
+  Test phase:
+  \begin{itemize}
+    \item[\tobedone] Import simulation and reconstruction history to git
+    \item[\tobedone] Provide a `README.md`: How to migrate, clone, build, run tests, commit, find further resources.
+    \item[\tobedone] Test these instructions with a group of people and a copy of IceTrayCombo
+  \end{itemize}
+
+  \framebreak
+  \vspace{1cm}
+  Going live:
+  \begin{itemize}
+    \item[\tobedone] Enable github issues
+    \item[\tobedone] Enable private forking
+    \item[\tobedone] Publish announcement of the upcoming change, including how-to instructions
+    \item[\tobedone] Make svn read-only and refer to instructions on how to proceed
+    \item[\tobedone] Update the meta-project svn externals to point to read-only svn
+    \item[\tobedone] Add git as svn external for the combo meta project in the svn repo
+    \item[\tobedone] Make the repo git-writable
+  \end{itemize}
+
+  \vfill
+  \tiny See also: \url{https://github.com/fiedl/icecube-git-migration/issues/9}
+
+\end{frame}
+

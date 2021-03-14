@@ -1,0 +1,206 @@
+# This is a Rakefile for producing a latex pdf.
+# Repo: https://github.com/fiedl/dot-zsh
+#
+# Just type `rake` to run it.
+
+require 'pry'
+require 'erb'
+
+task :default => [:info, :compile, :open]
+
+pdf_viewer = "open -a /Applications/Skim.app"
+
+require 'fiedl/log'
+
+def base_path
+  File.dirname(__FILE__)
+end
+
+def main_tex_file
+  File.basename Dir.glob("#{base_path}/*.tex").first
+end
+
+def project_name
+  File.basename main_tex_file, ".tex"
+end
+
+def current_tex_file
+  ENV['TM_FILEPATH']
+end
+
+def build_path
+  "#{base_path}/build"
+end
+
+def pdf_file
+  "build/#{project_name}.pdf"
+end
+
+def pdflatex_command
+  "lualatex -interaction=nonstopmode -file-line-error-style -shell-escape"
+end
+
+def include_only_a_part?
+  current_tex_file && (not File.identical?(current_tex_file, main_tex_file))
+end
+
+task :info do
+  log.head "LaTeX Rakefile"
+  log.info "Base directory: #{base_path}"
+  log.info "Main tex file: #{main_tex_file}"
+end
+
+task :compile => [:copy_files_to_build_directory, :dependencies, :includeonly, :preprocessing] do
+  log.section "latex"
+  sh "cd #{build_path} && #{pdflatex_command} #{main_tex_file}"
+end
+
+task :copy_files_to_build_directory do
+  log.section "Copy to build directory"
+  log.info "The source files stay untouched in the root directory, but this script"
+  log.info "all source files into the build directory for pre-processing and compiling."
+  FileUtils.mkdir_p build_path
+  FileUtils.copy_entry "#{base_path}/#{main_tex_file}", "#{build_path}/#{main_tex_file}"
+  FileUtils.copy_entry "#{base_path}/text", "#{build_path}/text"
+  FileUtils.copy_entry "#{base_path}/img", "#{build_path}/img"
+  FileUtils.copy_entry "#{base_path}/lib", "#{build_path}/lib"
+end
+
+task :dependencies => [:images, :bibliography]
+
+task :includeonly do
+  new_include_only_line = "%\\includeonly{}"
+  if include_only_a_part?
+    log.section "includeonly"
+
+    relative_file_title = current_tex_file.gsub(base_path + "/", "").gsub(".tex", "").gsub(".md", "").gsub(".erb", "")
+    new_include_only_line = "\\includeonly{#{relative_file_title}}"
+
+    log.info "Current file: #{current_tex_file}"
+    log.info "Writing '#{new_include_only_line}' to #{build_path}/#{main_tex_file}."
+  end
+
+  tex_code = File.read "#{build_path}/#{main_tex_file}"
+  tex_code = tex_code.split("\n").collect do |line|
+    if line.include? "\\includeonly{"
+      new_include_only_line
+    else
+      line
+    end
+  end.join("\n")
+  File.open("#{build_path}/#{main_tex_file}", 'w') { |f| f.write tex_code }
+end
+
+multitask :images => [:tikz_images]
+
+multitask :tikz_images => FileList['build/img/*.tikz'].ext('pdf')
+
+FileList['build/img/*.tikz'].each do |source|
+  file source.ext('pdf') => source do
+    sh "cd build/img && pdflatex -interaction=nonstopmode -file-line-error-style #{File.basename(source)}"
+  end
+end
+
+task :bibliography => "build/#{project_name}.bbl"
+
+file "build/#{project_name}.bbl" do
+  if File.exists?("build/#{project_name}.bib")
+    log.section "Bibliography biber"
+    sh "biber build/#{project_name}"
+  end
+end
+
+task :preprocessing => [:erb, :markdown]
+
+def erb_files
+  if include_only_a_part?
+    if current_tex_file.include? ".erb"
+      FileList["build/" + current_tex_file.gsub(base_path + "/", "")]
+    else
+      FileList[]
+    end
+  else
+    FileList["build/text/*.tex.md.erb"]
+  end
+end
+
+task :erb => [:copy_files_to_build_directory, :erb_info] + erb_files.ext('')
+
+task :erb_info do
+  log.section "Preprocessing erb files"
+  log.info erb_files.join("\n").blue
+end
+
+rule ".tex.md" => ".tex.md.erb" do |t|
+  log.info "Converting #{t.source} to #{t.name}."
+  converted_content = ERB.new(File.read(t.source)).result
+  File.write(t.name, converted_content)
+end
+
+def markdown_files
+  if include_only_a_part?
+    if current_tex_file.include? ".tex.md"
+      FileList["build/" + current_tex_file.gsub(".erb", "").gsub(base_path + "/", "")]
+    else
+      FileList[]
+    end
+  else
+    FileList["build/text/*.tex.md"]
+  end
+end
+
+task :markdown => [:copy_files_to_build_directory, :markdown_info] + markdown_files.ext('')
+
+task :markdown_info do
+  log.section "Processing markdown files"
+  log.info markdown_files.join("\n").blue
+end
+
+rule ".tex" => ".tex.md" do |t|
+  log.info "Converting #{t.source} to #{t.name}."
+  content = File.read t.source
+
+  log.info "-> Removing tex comment lines"
+  content = content.split("\n").select { |line| not line.start_with? "%" }.join("\n")
+
+  log.info "-> Converting `inline code` to \\inlinecode{inline code}"
+  content = content.gsub(/`([^`\n]*)`/, '\inlinecode{\1}')
+
+  log.info "-> Converting **bold text** to \\textbf{bold text}"
+  content = content.gsub(/\*\*([^\*\n]*)\*\*/, '\textbf{\1}')
+
+  log.info "-> Converting *italic text* to \\textit{italic text}"
+  content = content.gsub(/\*([^\*\n]*)\*/, '\textit{\1}')
+
+  #sh "cat #{t.source} |sed '/^%/d' > #{t.source.ext('tmp')}" # remove tex comments
+
+  log.info "-> running pandoc markdown converter:"
+  File.write t.source.ext('tmp'), content
+  sh "pandoc #{t.source.ext('tmp')} --from markdown --to latex > #{t.name}"
+  rm t.source.ext('tmp')
+
+  #log.warning "-> Omitting pandoc conversion for now. Sorry."
+  #File.write t.name, content
+end
+
+task :open do
+  log.section "open"
+  sh "#{pdf_viewer} #{pdf_file}"
+end
+
+task :clean do
+  log.section "Cleaning up"
+  sh "rm -r #{build_path}"
+end
+
+# From within erb files, you may call `render` to include other erb files.
+#
+#    <%= render 'sample', foo: "bar" %>
+#
+# Here, "sample" is the title of a "sample.tex.erb" file inside the "text" folder.
+#
+def render(file, locals = {})
+  erb_context = binding
+  locals.each { |key, value| erb_context.local_variable_set(key, value) }
+  ERB.new(File.read("build/text/#{file}.tex.erb"), nil, nil, '_sub01').result(erb_context)
+end
