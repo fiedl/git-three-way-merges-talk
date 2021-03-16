@@ -2,6 +2,8 @@
 
 \documentclass{beamer}
 
+\listfiles
+
 % https://gist.github.com/andrejbauer/ac361549ac2186be0cdb
 %\setbeameroption{show notes}
 
@@ -10,12 +12,13 @@
 \geometry{paperwidth=\mypaperwidth,paperheight=0.625\mypaperwidth} % 16:10
 %\geometry{paperwidth=\mypaperwidth,paperheight=0.5625\mypaperwidth} % 16:9
 
-\title{Goals and choices regarding the migration to github}
-\subtitle{Software Call 2020-12-01}
-\date{\today \\ \vspace*{2mm}\tiny{Document 2020-Wa6hohfe} \normalsize}
+\title{3-Way Merges in Git: Conflict Resolution and History Merges}
+\subtitle{IceCube Collaboration Meeting Spring 2021}
+\date{2021-03-19 \\ \vspace*{2mm}\tiny{Document 2021-siChoo2E} \normalsize}
 
-\author[Sebastian Fiedlschuster]{Sebastian Fiedlschuster \\ \small\url{https://github.com/fiedl/icecube-git-migration} \\
-\small\url{sebastian.fiedlschuster@fau.de}}
+\author[Sebastian Fiedlschuster]{Sebastian Fiedlschuster \vspace*{0.5em} \\ \small\url{https://github.com/fiedl/git-three-way-merges-talk} \\
+\footnotesize\url{sebastian.fiedlschuster@fau.de} \\
+\footnotesize Slack: \texttt{@fiedl}}
 \institute{Erlangen Centre for Astroparticle Physics}
 
 \newif\ifplacelogo % create a new conditional
@@ -59,35 +62,33 @@
 
 \newcommand\question[1]{\colorbox{blue!10}{\fbox{\ \ \questionicon \ \ #1}}}
 
-\section{Introduction}
+\newcommand\relates{$\mathrel{\widehat{=}}$}
+
 \input{text/prefix}
 \input{text/motivation}
 
-% \section{Goals and Choices} --> moved into `text/decisions_chord_chart`
-\input{text/decisions_chord_chart}
+\section{Basic conflict resolution: 2-way merges (diffs)}
+\include{text/two_way_merge}
 
-%\section{Proposal}
-%\subsection{Goal}\input{text/goal}
-%\subsection{Choices}\input{text/choices}
-%\subsection{Pros and Cons}\input{text/pros}
-%\input{text/cons}
-%\subsection{Tests}\input{text/tests}
-%
-%\subsection{Planned steps}
-%\input{text/local_changes}
-%\input{text/steps_to_goal}
-%\input{text/steps_after_goal}
-%
-%\section{Conclusion}
-%\input{text/next_steps}
-\input{text/compromises}
+\section{Basic conflict resolution: 3-way merges}
+\include{text/three_way_merge}
+
+\section{Example: Reintroduction of a fixed bug}
+\include{text/reintroduction_of_fixed_bug}
+
+\section{Application: Merge feature from other history}
+\include{text/merge_feature_from_other_history}
+
+\section{Application: Bring in earlier history}
+\include{text/bring_in_earlier_history}
+
+\section{Useful tricks}
+\include{text/git_log_first_parent}
+\include{text/git_graph}
+\include{text/rename_main_branch}
+\include{text/ignore_whitespace}
+
+\include{text/why_useful}
 \input{text/thanks}
-
-\appendix
-\section{Backup slides}
-\input{text/wishlist_nathan}
-\input{text/wishlist_erik}
-\input{text/wishlist_alex}
-\input{text/discussions}
 
 \end{document}

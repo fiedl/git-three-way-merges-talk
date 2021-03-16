@@ -1,49 +1,24 @@
 %!TEX TS-program = ../make.zsh
 
-\newcommand\largenumber[1]{%
-  {\fontsize{120}{80}\selectfont\textcolor{gray75} #1}
-}
+\begin{frame}[fragile]{Introduction}
+  \header{What is a merge?}
 
-\begin{frame}[fragile,t]{Motivation and Scope}
-  \begin{center}
+  \begin{itemize}
+    \item \textit{to merge = to combine or make two or more things combine to form a single thing}
 
-  \large
+      Oxford Advanced Learner's Dictionary
 
-  Care about the upcoming git migration \& would like to help bring it forward.
-  \vspace{2em}
+      {\tiny \url{https://www.oxfordlearnersdictionaries.com/definition/english/merge}}
 
-  \only<2>{
-    Reached out to github and asked for a \alert{username transfer} of the empty \texttt{icecube} user.
+    \item \textit{git-merge - Join two or more development histories together}
 
-    {\Large $\Rightarrow \ $ now we have \url{https://github.com/icecube}}
+      \textit{Incorporates changes from the named commits (since the time their histories diverged from the current branch) into the current branch.}
 
-    Plus: \href{https://education.github.com/benefits/offers}{Github Education}
+      git-scm
 
-    \vfill\largenumber{1}
-  }
+      {\tiny \url{https://git-scm.com/docs/git-merge}}
+  \end{itemize}
 
-  \only<3>{
-    Working on a series of \alert{screencasts} to \\
-    help new users \alert{getting started} with \\
-    icecube \akert{software} and the \alert{git} workflow.
-    \vspace{1em}
-
-    {\Huge Draft: \textbf{\href{https://www.youtube.com/watch?v=Qhoi0pvz4NU&list=PLdgdfMdHO04_friA1Bo57klqFR5YsB0P_&index=1}{YouTube Playlist}}}
-
-    Todo list: \url{https://github.com/fiedl/icecube-git-migration/issues/17}
-
-    \vfill\largenumber{2}
-  }
-
-  \only<4>{
-    Went through call notes \& slack discussions and\\
-    \alert{summarized choices and goals} and\\
-    look where they are \alert{connected} (\textbf{this talk})
-
-    \vfill\largenumber{3}
-  }
-
-  \end{center}
 \end{frame}
 
 

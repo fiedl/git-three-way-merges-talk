@@ -1,0 +1,41 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}{Basic conflict resolution: 2-way merges (diffs)}
+  \begin{columns}
+  \begin{column}{0.5\textwidth}
+    \begin{minipage}[c][0.5\textheight][c]{\textwidth}
+      \hspace{2cm}
+      \begin{tikzpicture}
+        \only<1>{
+          \gitDAG{B, C};
+          \gitbranch{foo}{above = of B}{B};
+          \gitbranch{bar}{below = of C}{C};
+
+          \node[blob, left = of B]{2 3};
+          \node[blob, left = of C]{1 2 3 4};
+        }
+        \only<2>{
+          \gitDAG{B -- D , C -- D};
+
+          \node[blob, left = of B]{2 3};
+          \node[blob, left = of C]{1 2 3 4};
+          \gitblobmc{right = of D};
+
+          \node[below right = 0.5cm of D, font=\tiny, text=conflictcolor, xshift=-5mm]{\texttt{2 3}\ vs.\ \texttt{1 2 3 4}};
+        }
+      \end{tikzpicture}
+    \end{minipage}
+
+    \begin{minipage}[t]{\textwidth}
+      \begin{itemize}
+        \item<1-> Consider two \alert{unrelated versions} (branches) of the same file
+        \item<2> What should be the merged version: \texttt{2 3} or \texttt{1 2 3 4} or something else? This a \alert{merge conflict}.
+      \end{itemize}
+    \end{minipage}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+  \end{column}
+  \end{columns}
+
+  \source{https://github.com/fiedl/git-three-way-merges-talk/issues/1}
+\end{frame}

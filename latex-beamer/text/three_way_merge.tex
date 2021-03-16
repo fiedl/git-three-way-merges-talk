@@ -1,0 +1,73 @@
+%!TEX TS-program = ../make.zsh
+
+\begin{frame}{Basic conflict resolution: 3-way merges}
+  \begin{columns}
+  \begin{column}{0.5\textwidth}
+    \begin{minipage}[c][0.5\textheight][c]{\textwidth}
+      \hspace{2cm}
+      \begin{tikzpicture}
+          \gitDAG{B -- D , C -- D};
+
+          \node[blob, left = of B]{2 3};
+          \node[blob, left = of C]{1 2 3 4};
+          \gitblobmc{right = of D};
+
+          \node[below right = 0.5cm of D, font=\tiny, text=conflictcolor, xshift=-5mm]{\texttt{2 3}\ vs.\ \texttt{1 2 3 4}};
+      \end{tikzpicture}
+    \end{minipage}
+
+    \begin{minipage}[t]{\textwidth}
+      \begin{itemize}
+        \item Consider two \alert{unrelated versions} (branches) of the same file
+        \item What should be the merged version: \texttt{2 3} or \texttt{1 2 3 4} or something else? This a \alert{merge conflict}.
+      \end{itemize}
+    \end{minipage}
+  \end{column}
+
+  \begin{column}{0.5\textwidth}
+    \begin{minipage}[c][0.5\textheight][c]{\textwidth}
+      \begin{tikzpicture}
+        \only<1>{
+          \gitDAG{A -- B, A -- C [below of = B]};
+
+          \node[blob, left = of A]{1 2 3};
+          \node[blob, above = of B]{2 3};
+          \node[blob, below = of C]{1 2 3 4};
+        }
+        \only<2>{
+          \gitDAG{A -- B, A -- C [below of = B]};
+
+          \node[blob, left = of A]{1 2 3};
+          \node[blob, above = of B]{2 3};
+          \node[blob, below = of C]{1 2 3 4};
+
+          \node[above = 1.5cm of B, font=\tiny]{removed \texttt{1}};
+          \node[below = 1.5cm of C, font=\tiny]{added \texttt{4}};
+        }
+        \only<3>{
+          \gitDAG{A -- B -- D, A -- C [below of = B] -- D};
+
+          \node[blob, left = of A]{1 2 3};
+          \node[blob, above = of B]{2 3};
+          \node[blob, below = of C]{1 2 3 4};
+
+          \node[above = 1.5cm of B, font=\tiny]{removed \texttt{1}};
+          \node[below = 1.5cm of C, font=\tiny]{added \texttt{4}};
+
+          \node[blob, right = of D]{2 3 4};
+        }
+      \end{tikzpicture}
+    \end{minipage}
+
+    \begin{minipage}[t]{\textwidth}
+      \begin{itemize}
+        \item<1-> Consider two versions (branches) of the same file based on a \alert{common ancestor}.
+        \item<2-> As git \alert{knows the changes} in comparison to the common ancestor \dots
+        \item<3-> it can \alert{resolve} the merge conflict \alert{automatically}.
+      \end{itemize}
+    \end{minipage}
+  \end{column}
+  \end{columns}
+
+  \source{https://github.com/fiedl/git-three-way-merges-talk/issues/2}
+\end{frame}

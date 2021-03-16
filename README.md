@@ -1,1 +1,1 @@
-# icecube-git-migration-talk
+# git three-way-merges talk
