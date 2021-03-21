@@ -1,7 +1,7 @@
 %!TEX TS-program = ../make.zsh
 
-\begin{frame}[fragile]{Why?}
-  Why is it useful to consider these things?
+\begin{frame}[fragile]{Introduction}
+  \alert{Why is it useful} to think about merges?
 
   \begin{itemize}
     \item Automatic \alert{conflict resolution} can \alert{save time}
